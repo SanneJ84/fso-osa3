@@ -1,9 +1,11 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
 const app = express();
 
 // Käytetään express.json(), jotta POST-pyynnön data on saatavilla
 app.use(express.json());
+app.use(cors());  // Käytetään CORSia, jotta voidaan tehdä pyyntöjä eri domaineista
 
 // Määritellään morganin loggaustyyli, joka näyttää myös requestin bodyn
 morgan.token('body', (req) => JSON.stringify(req.body));  // Muista lisätä return
@@ -73,7 +75,7 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint);
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  console.log(`Server running on port ${PORT}`)
+})

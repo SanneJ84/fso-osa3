@@ -2,10 +2,14 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const app = express();
+const path = require('path');
+
 
 // Käytetään express.json(), jotta POST-pyynnön data on saatavilla
 app.use(express.json());
 app.use(cors());  // Käytetään CORSia, jotta voidaan tehdä pyyntöjä eri domaineista
+
+app.use(express.static('dist'));  // Käytetään staattista tiedostopalvelinta, jotta voimme palvella HTML-tiedostoja
 
 // Määritellään morganin loggaustyyli, joka näyttää myös requestin bodyn
 morgan.token('body', (req) => JSON.stringify(req.body));  // Muista lisätä return
@@ -66,6 +70,10 @@ app.post('/api/persons', (request, response) => {
   newPerson.id = (Math.random() * 1000).toFixed(2).toString();
   persons.push(newPerson);
   response.status(201).json(newPerson);
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Tuntemattomat reitit

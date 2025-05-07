@@ -13,7 +13,7 @@ app.use(cors());  // Käytetään CORSia, jotta voidaan tehdä pyyntöjä eri do
 app.use(express.static('dist'));  // Käytetään staattista tiedostopalvelinta, jotta voimme palvella HTML-tiedostoja
 
 // Määritellään morganin loggaustyyli, joka näyttää myös requestin bodyn
-morgan.token('body', (req) => JSON.stringify(req.body));  // Muista lisätä return
+morgan.token('body', (req) => JSON.stringify(req.body));
 
 // Käytetään morgan middlewarea, joka loggaa kaikki saapuvat HTTP-pyynnöt
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
@@ -27,10 +27,6 @@ let persons = [
 ];
 
 // Reitit
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
 app.get('/api/persons', (request, response) => {
   response.json(persons);
 });
@@ -72,6 +68,11 @@ app.post('/api/persons', (request, response) => {
   persons.push(newPerson);
   response.status(201).json(newPerson);
 });
+
+app.get('/', (req, res) => {    
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 
 // Tuntemattomat reitit
 const unknownEndpoint = (request, response) => {

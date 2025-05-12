@@ -3,7 +3,7 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const Person = require('./models/person'); // Person-malli
+const Person = require('./models/person');
 const app = express();
 const path = require('path');
 
@@ -89,7 +89,7 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint);
 
 // Palvelimen käynnistys
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

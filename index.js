@@ -5,7 +5,6 @@ const app = express();
 const path = require('path');
 
 
-
 // Käytetään express.json(), jotta POST-pyynnön data on saatavilla
 app.use(express.json());
 app.use(cors());  // Käytetään CORSia, jotta voidaan tehdä pyyntöjä eri domaineista

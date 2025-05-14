@@ -2,7 +2,7 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-  "name": "Max Verstappen",
-  "number": "456-7547225"
+  "name": "Homer Simpson",
+  "number": "999-854-000"
 }
 

@@ -2,15 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const Person = require('./models/person');
 const app = express();
 const path = require('path');
 
-// Käytetään express.json(), jotta POST-pyynnön data on saatavilla
-app.use(express.json());
-app.use(cors());  // Käytetään CORSia, jotta voidaan tehdä pyyntöjä eri domaineista
-app.use(express.static('dist'));  // Käytetään staattista tiedostopalvelinta, jotta voimme palvella HTML-tiedostoja
+app.use(express.static('dist'));                                // Käytetään staattista tiedostopalvelinta, jotta voimme palvella HTML-tiedostoja
+app.use(express.json());                                        // Käytetään JSON-muotoista dataa jotta voidaan käsitellä JSON-pyyntöjä 
+app.use(cors());                                                // Käytetään CORSia, jotta voidaan tehdä pyyntöjä eri domaineista
+
 
 // Määritellään morganin loggaustyyli, joka näyttää myös requestin bodyn
 morgan.token('body', (req) => JSON.stringify(req.body));
@@ -28,29 +27,30 @@ app.get('/api/persons', (request, response) => {
 });
 
 // Yksittäisen henkilön hakeminen ID:n perusteella
-app.get('/api/persons/:id', (request, response) => {
-  Person.findById(request.params.id).then(person => {
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id)
+  .then(person => {
     if (person) {
       response.json(person)
     } else {
-      response.status(404).send({ error: 'Person not found' })
+      response.status(404).end()
     }
   })
-});
+  .catch(error => next(error))
+})
 
 // Henkilön poistaminen
-app.delete('/api/persons/:id', (request, response) => {
-  Person.findByIdAndRemove(request.params.id).then(result => {
-    if (result) {
-      response.status(204).end()
-    } else {
-      response.status(404).send({ error: 'Person not found' })
-    }
-  })
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+        .then((result) => {
+            response.status(204).end();
+        })
+        .catch(error => next(error))
 });
 
+
 // Uuden henkilön lisääminen
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body;
 
   if (!body.name || !body.number) {
@@ -65,14 +65,18 @@ app.post('/api/persons', (request, response) => {
   person.save().then(savedPerson => {
     response.json(savedPerson)
   })
+  .catch(error => next(error))
 });
 
-// Tietoa puhelinluettelosta
 app.get('/api/info', (request, response) => {
   const date = new Date();
-  Person.countDocuments({}).then(count => {
-    const info = `<p>Phonebook has info for ${count} people</p><p>${date}</p>`;
-    response.send(info);
+  Person.countDocuments({})
+  .then(count => {
+    response.send(`<p>Phonebook has info for ${count} people</p><p>${date}</p>`);
+  })
+  .catch(error => {
+    console.log(error);
+    response.status(500).send({'error counting documents': error.message});
   })
 });
 
@@ -86,7 +90,26 @@ const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' });
 };
 
+// Estetään virheilmoitus joka syntyy, kun selain yrittää ladata faviconia
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+
 app.use(unknownEndpoint);
+
+// Virheiden käsittely
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
+  next(error)
+}
+
+// tämä tulee kaikkien muiden middlewarejen ja routejen rekisteröinnin jälkeen!
+app.use(errorHandler)
 
 // Palvelimen käynnistys
 const PORT = process.env.PORT

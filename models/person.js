@@ -6,7 +6,7 @@ const url = process.env.MONGODB_URI
 
 console.log('connecting to', url)
 mongoose.connect(url)
-.then(result => {
+  .then(() => {
     console.log('connected to MongoDB')
   })
   .catch((error) => {
@@ -23,7 +23,7 @@ const personSchema = new mongoose.Schema({
     type: String,
     required: true,
   }
-});
+})
 
 personSchema.set('toJSON', {
   transform: (document, returnedObject) => {
@@ -35,4 +35,4 @@ personSchema.set('toJSON', {
 
 const Person = mongoose.model('Person', personSchema)
 
-module.exports = Person;
+module.exports = Person
